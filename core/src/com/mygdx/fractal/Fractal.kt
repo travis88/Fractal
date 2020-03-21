@@ -73,7 +73,7 @@ class Fractal : ApplicationAdapter() {
         Gdx.gl.glClearColor(255f, 255f, 255f, 0.0f)
         shape.begin(ShapeRenderer.ShapeType.Filled)
 
-        if (isAuto && dots.size < 2000) {
+        if (isAuto && dots.size < MAX_DOTS) {
             addDot()
             Thread.sleep(50)
         }
@@ -142,5 +142,6 @@ class Fractal : ApplicationAdapter() {
 
     companion object {
         const val TAG = "TAG"
+        const val MAX_DOTS = 5000
     }
 }
