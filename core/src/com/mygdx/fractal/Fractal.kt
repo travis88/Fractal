@@ -24,30 +24,46 @@ class Fractal : ApplicationAdapter() {
     private lateinit var dots: ArrayList<Dot>
 
     private lateinit var stage: Stage
-    private lateinit var button: ImageButton
+    private lateinit var addButton: ImageButton
+    private lateinit var autoButton: ImageButton
     private lateinit var spriteBatch: SpriteBatch
     private lateinit var font: BitmapFont
     private var rnd = 0
+    private var isAuto = false
 
     override fun create() {
         shape = ShapeRenderer()
         dots = ArrayList()
 
         stage = Stage()
+        Gdx.input.inputProcessor = stage
+
         val runTexture = Texture(Gdx.files.internal("button.png"))
         val runTexturePressed = Texture(Gdx.files.internal("button_pressed.png"))
-        button = ImageButton(TextureRegionDrawable(TextureRegion(runTexture)),
+        addButton = ImageButton(TextureRegionDrawable(TextureRegion(runTexture)),
                 TextureRegionDrawable(TextureRegion(runTexturePressed)))
-        button.setPosition(60f, 300f)
-        button.isVisible = false
-        Gdx.input.inputProcessor = stage
-        stage.addActor(button)
-
-        button.addListener(object : ClickListener() {
+        addButton.setPosition(60f, 350f)
+        addButton.isVisible = false
+        addButton.addListener(object : ClickListener() {
             override fun clicked(event: InputEvent?, x: Float, y: Float) {
-                buttonClicked()
+                addDot()
             }
         })
+        stage.addActor(addButton)
+
+        val autoTexture = Texture(Gdx.files.internal("auto_button.png"))
+        val autoTexturePressed = Texture(Gdx.files.internal("auto_button_pressed.png"))
+        autoButton = ImageButton(TextureRegionDrawable(TextureRegion(autoTexture)),
+                TextureRegionDrawable(TextureRegion(autoTexturePressed)))
+        autoButton.setPosition(60f, 400f)
+        autoButton.isVisible = false
+        autoButton.addListener(object : ClickListener() {
+            override fun clicked(event: InputEvent?, x: Float, y: Float) {
+                isAuto = !isAuto
+            }
+        })
+        stage.addActor(autoButton)
+
         spriteBatch = SpriteBatch()
         font = BitmapFont()
     }
@@ -57,12 +73,18 @@ class Fractal : ApplicationAdapter() {
         Gdx.gl.glClearColor(255f, 255f, 255f, 0.0f)
         shape.begin(ShapeRenderer.ShapeType.Filled)
 
+        if (isAuto && dots.size < 2000) {
+            addDot()
+            Thread.sleep(50)
+        }
+
         spriteBatch.begin()
         font.draw(spriteBatch, "count: ${dots.size}", 60f, 310f)
         getInfo()
         spriteBatch.end()
 
-        button.isVisible = dots.size >= 4
+        addButton.isVisible = dots.size >= 4
+        autoButton.isVisible = dots.size >= 4
         if (dots.size < 4 && Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)) {
             val x = Gdx.input.x.toFloat()
             val y = Gdx.graphics.height - Gdx.input.y.toFloat()
@@ -93,7 +115,7 @@ class Fractal : ApplicationAdapter() {
         }
     }
 
-    private fun buttonClicked() {
+    private fun addDot() {
         rnd = (1..6).random()
         Gdx.app.log(TAG, rnd.toString())
 
