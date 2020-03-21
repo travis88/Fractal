@@ -3,8 +3,11 @@ package com.mygdx.fractal
 import com.badlogic.gdx.ApplicationAdapter
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Input
+import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.Texture
+import com.badlogic.gdx.graphics.g2d.BitmapFont
+import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.graphics.g2d.TextureRegion
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 import com.badlogic.gdx.scenes.scene2d.InputEvent
@@ -13,6 +16,8 @@ import com.badlogic.gdx.scenes.scene2d.ui.ImageButton
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable
 import com.mygdx.fractal.entity.Dot
+import kotlin.math.max
+import kotlin.math.min
 
 class Fractal : ApplicationAdapter() {
     private lateinit var shape: ShapeRenderer
@@ -20,6 +25,9 @@ class Fractal : ApplicationAdapter() {
 
     private lateinit var stage: Stage
     private lateinit var button: ImageButton
+    private lateinit var spriteBatch: SpriteBatch
+    private lateinit var font: BitmapFont
+    private var rnd = 0
 
     override fun create() {
         shape = ShapeRenderer()
@@ -29,7 +37,7 @@ class Fractal : ApplicationAdapter() {
         val runTexture = Texture(Gdx.files.internal("button.png"))
         val runTexturePressed = Texture(Gdx.files.internal("button_pressed.png"))
         button = ImageButton(TextureRegionDrawable(TextureRegion(runTexture)),
-                             TextureRegionDrawable(TextureRegion(runTexturePressed)))
+                TextureRegionDrawable(TextureRegion(runTexturePressed)))
         button.setPosition(60f, 300f)
         button.isVisible = false
         Gdx.input.inputProcessor = stage
@@ -37,25 +45,28 @@ class Fractal : ApplicationAdapter() {
 
         button.addListener(object : ClickListener() {
             override fun clicked(event: InputEvent?, x: Float, y: Float) {
-                val rnds = (1..6).random()
-                Gdx.app.log(TAG, rnds.toString())
+                buttonClicked()
             }
         })
+        spriteBatch = SpriteBatch()
+        font = BitmapFont()
     }
 
     override fun render() {
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT)
         Gdx.gl.glClearColor(255f, 255f, 255f, 0.0f)
         shape.begin(ShapeRenderer.ShapeType.Filled)
-        if (dots.size >= 3) {
-            button.isVisible = true
-        }
-        if (dots.size < 3 && Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)) {
+
+        spriteBatch.begin()
+        font.draw(spriteBatch, "count: ${dots.size}", 60f, 310f)
+        getInfo()
+        spriteBatch.end()
+
+        button.isVisible = dots.size >= 4
+        if (dots.size < 4 && Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)) {
             val x = Gdx.input.x.toFloat()
             val y = Gdx.graphics.height - Gdx.input.y.toFloat()
-
-            Gdx.app.log(TAG, Gdx.input.x.toString())
-            dots.add(Dot(x, y, 3f))
+            dots.add(Dot(x, y))
         }
 
         for (dot in dots) {
@@ -64,6 +75,47 @@ class Fractal : ApplicationAdapter() {
 
         shape.end()
         stage.draw()
+    }
+
+    private fun getInfo() {
+        font.color = Color.BLACK
+
+        font.draw(spriteBatch, "random number: $rnd", 60f, 280f)
+        for (i in 0..3) {
+            canShowDotInfo(i)
+        }
+    }
+
+    private fun canShowDotInfo(index: Int) {
+        if (dots.size > index) {
+            val y = 260f - 20 * index
+            font.draw(spriteBatch, "dot${index + 1}: (${dots[index].x}, ${dots[index].y})", 60f, y)
+        }
+    }
+
+    private fun buttonClicked() {
+        rnd = (1..6).random()
+        Gdx.app.log(TAG, rnd.toString())
+
+        // точка, к которой необходимо следовать
+        val target = when (rnd) {
+            in 1..2 -> dots[0]
+            in 3..4 -> dots[1]
+            in 5..6 -> dots[2]
+            else -> dots[0]
+        }
+
+        val lastDot = dots.last()
+        Gdx.app.log(TAG, "lastdot: (${lastDot.x}, ${lastDot.y})")
+        Gdx.app.log(TAG, "target: (${target.x}, ${target.y})")
+
+        val maxX = max(target.x, lastDot.x)
+        val minX = min(target.x, lastDot.x)
+        val maxY = max(target.y, lastDot.y)
+        val minY = min(target.y, lastDot.y)
+
+        val newDot = Dot(minX + (maxX - minX) / 2, minY + (maxY - minY) / 2)
+        dots.add(newDot)
     }
 
     companion object {
