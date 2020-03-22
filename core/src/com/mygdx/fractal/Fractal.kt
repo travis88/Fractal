@@ -13,11 +13,16 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 import com.badlogic.gdx.scenes.scene2d.InputEvent
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.scenes.scene2d.ui.ImageButton
+import com.badlogic.gdx.scenes.scene2d.ui.SelectBox
+import com.badlogic.gdx.scenes.scene2d.ui.SelectBox.SelectBoxStyle
+import com.badlogic.gdx.scenes.scene2d.ui.Skin
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener
+import com.badlogic.gdx.scenes.scene2d.utils.SpriteDrawable
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable
 import com.mygdx.fractal.entity.Dot
 import kotlin.math.max
 import kotlin.math.min
+
 
 class Fractal : ApplicationAdapter() {
     private lateinit var shape: ShapeRenderer
@@ -30,6 +35,8 @@ class Fractal : ApplicationAdapter() {
     private lateinit var font: BitmapFont
     private var rnd = 0
     private var isAuto = false
+
+//    private lateinit var ballspeedbox: SelectBox<String>
 
     override fun create() {
         shape = ShapeRenderer()
@@ -75,7 +82,7 @@ class Fractal : ApplicationAdapter() {
 
         if (isAuto && dots.size < MAX_DOTS) {
             addDot()
-            Thread.sleep(50)
+//            Thread.sleep(50)
         }
 
         spriteBatch.begin()
